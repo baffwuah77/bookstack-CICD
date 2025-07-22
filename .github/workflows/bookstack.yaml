@@ -1,0 +1,27 @@
+name: Deploy BookStack
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build containers
+        run: |
+          docker-compose -f docker-compose.yml build
+
+      - name: Run containers
+        run: |
+          docker-compose -f docker-compose.yml up -d
