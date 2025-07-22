@@ -1,23 +1,3 @@
-# BookStack Deployment (Vault + GitHub Actions CI/CD)
-
-This project automates BookStack deployment using GitHub Actions CI/CD and HashiCorp Vault.
-
-## Features
-- Secrets managed securely in Vault
-- Docker image built with secrets injected as build args
-- No secrets stored in docker-compose.yml or version control
-- Vault secret path auto-initialized if missing
-
-## Setup Instructions
-
-1. Clone the repo and switch to your working branch
-2. Ensure Vault is running and accessible at $VAULT_ADDR
-3. Add your Vault token to GitHub secrets as `VAULT_TOKEN`
-4. Add Vault address to GitHub secrets as `VAULT_ADDR`
-5. Commit changes and push to GitHub to trigger the CI/CD workflow
-
-## Vault Secret Path
-
 - `secret/Dev-secret/bookstack`
 - Required keys:
   - `app_url`
@@ -60,3 +40,4 @@ docker build \
   -t your-registry/bookstack:secure ./bookstack
 
 docker-compose -f bookstack/docker-compose.yml up -d
+
