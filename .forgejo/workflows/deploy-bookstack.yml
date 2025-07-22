@@ -1,0 +1,65 @@
+
+name: Deploy BookStack Securely
+
+on:
+  push:
+    paths:
+      - 'bookstack/**'
+    branches:
+      - main  # adjust if necessary
+
+env:
+  VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+  VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Vault CLI and jq
+        run: |
+          sudo apt-get update && sudo apt-get install -y vault jq
+
+      - name: Authenticate with Vault
+        run: |
+          vault login $VAULT_TOKEN
+
+      - name: Initialize Vault Path (Optional)
+        run: ./bookstack/vault-init.sh
+
+      - name: Retrieve Secrets from Vault
+        id: vault-secrets
+        run: |
+          secrets=$(vault kv get -format=json secret/Dev-secret/bookstack | jq -r '.data.data')
+          echo "APP_URL=$(echo $secrets | jq -r .app_url)" >> $GITHUB_ENV
+          echo "DB_HOST=$(echo $secrets | jq -r .db_host)" >> $GITHUB_ENV
+          echo "DB_DATABASE=$(echo $secrets | jq -r .db_database)" >> $GITHUB_ENV
+          echo "DB_USERNAME=$(echo $secrets | jq -r .db_username)" >> $GITHUB_ENV
+          echo "DB_PASSWORD=$(echo $secrets | jq -r .db_password)" >> $GITHUB_ENV
+          echo "MYSQL_DATABASE=$(echo $secrets | jq -r .mysql_database)" >> $GITHUB_ENV
+          echo "MYSQL_USER=$(echo $secrets | jq -r .mysql_user)" >> $GITHUB_ENV
+          echo "MYSQL_PASSWORD=$(echo $secrets | jq -r .mysql_password)" >> $GITHUB_ENV
+          echo "MYSQL_ROOT_PASSWORD=$(echo $secrets | jq -r .mysql_root_password)" >> $GITHUB_ENV
+
+      - name: Build BookStack Docker Image
+        run: |
+          docker build \
+            --build-arg APP_URL=$APP_URL \
+            --build-arg DB_HOST=$DB_HOST \
+            --build-arg DB_DATABASE=$DB_DATABASE \
+            --build-arg DB_USERNAME=$DB_USERNAME \
+            --build-arg DB_PASSWORD=$DB_PASSWORD \
+            -t your-registry/bookstack:secure ./bookstack
+
+      - name: Deploy with Docker Compose
+        run: |
+          cd bookstack
+          echo "MYSQL_DATABASE=$MYSQL_DATABASE" > .env
+          echo "MYSQL_USER=$MYSQL_USER" >> .env
+          echo "MYSQL_PASSWORD=$MYSQL_PASSWORD" >> .env
+          echo "MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD" >> .env
+          docker-compose up -d
