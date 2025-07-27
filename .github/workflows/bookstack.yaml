@@ -15,13 +15,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Create .env file with required variables
+        run: |
+          echo "BOOKSTACK_IMAGE=your-bookstack-image:latest" >> .env
+          echo "BOOKSTACK_CONTAINER_NAME=bookstack-app" >> .env
+          echo "DB_IMAGE=postgres:13" >> .env
+          echo "NGINX_IMAGE=nginx:latest" >> .env
+          echo "NGINX_CONTAINER_NAME=bookstack-nginx" >> .env
+          echo "NGINX_PORT=8080" >> .env
+          echo "NGINX_INTERNAL_PORT=80" >> .env
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Build containers
         run: |
-          docker compose -f docker-compose.yml build
+          docker compose -f docker-compose.yml build --progress=plain
 
       - name: Run containers
         run: |
           docker compose -f docker-compose.yml up -d
+          docker compose ps
