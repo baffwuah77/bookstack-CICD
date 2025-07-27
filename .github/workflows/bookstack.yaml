@@ -17,7 +17,7 @@ jobs:
 
       - name: Create .env file with required variables
         run: |
-          echo "BOOKSTACK_IMAGE=your-bookstack-image:latest" >> .env
+          echo "BOOKSTACK_IMAGE=lscr.io/linuxserver/bookstack:latest" >> .env
           echo "BOOKSTACK_CONTAINER_NAME=bookstack-app" >> .env
           echo "DB_IMAGE=postgres:13" >> .env
           echo "NGINX_IMAGE=nginx:latest" >> .env
